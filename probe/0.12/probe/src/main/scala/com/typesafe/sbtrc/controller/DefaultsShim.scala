@@ -113,11 +113,12 @@ object DefaultsShim {
     val hasPlay = controller.isPlayProject(origState)
     val hasEcho = EchoSupport.isEchoProject(origState)
     val hasAkka = AkkaSupport.isAkkaProject(origState)
+    val newRelicAgent = NewRelicSupport.newRelicAgent(origState).map(version => Map("newRelicAgent" -> version)).getOrElse(Map.empty[String, Any])
 
     (origState, makeResponseParams(protocol.NameResponse(result,
       Map("hasPlay" -> hasPlay,
         "hasAkka" -> hasAkka,
-        "hasEcho" -> hasEcho))))
+        "hasEcho" -> hasEcho) ++ newRelicAgent)))
   }
 
   private def withUiContext[T](state: State, ui: UIContext)(f: State => (State, T)): (State, T) = {

@@ -42,7 +42,7 @@ trait ShimWriter {
   protected def makeTarget(basedir: File): File =
     if(relativeLocation.isEmpty) new File(basedir, SHIM_FILE_NAME)
     else new File(new File(basedir, relativeLocation), SHIM_FILE_NAME)
-  
+
   // update the shim file IF it already exists. Returns true if it makes a change.
   def updateIfExists(basedir: File): Boolean
   // update the shim file EVEN IF it doesn't exist. Returns true if it makes a change.
@@ -68,18 +68,18 @@ case class DeleteShimIfExistsWriter(name: String, override val relativeLocation:
 /** This writes to a shim file the contents specified. */
 trait ContentsShimWriter extends ShimWriter {
   protected def contents: String
-    
+
   protected lazy val contentsFile = {
     val tmp = java.io.File.createTempFile(name, "sbt-shim")
     IO.write(tmp, contents)
     tmp.deleteOnExit()
     tmp
   }
-  
+
   protected lazy val contentsSha = FileHasher.sha512(contentsFile)
-  
+
   protected def isEmpty: Boolean = contents.isEmpty
-  
+
   // update the shim file ONLY if it already exists. Returns true if it makes a change.
   override def updateIfExists(basedir: File): Boolean = {
     val target = makeTarget(basedir)
@@ -96,16 +96,16 @@ trait ContentsShimWriter extends ShimWriter {
 
   override def ensureExists(basedir: File): Boolean = {
     val target = makeTarget(basedir)
-    // If the file does not exist, but we aren't writing to it, don't bother 
+    // If the file does not exist, but we aren't writing to it, don't bother
     // creating an empty file.
     def doesNotExistAndEmpty = isEmpty && !target.exists
     // If the file exists *and* the contents match, this is true.
     def existsAndShaMatches = target.exists && FileHasher.sha512(target) == contentsSha
-    
+
     // Now do the work.
     if(doesNotExistAndEmpty) false
     else if(existsAndShaMatches) {
-      // We can safely delete the file if it's meant to be empty. 
+      // We can safely delete the file if it's meant to be empty.
       if(isEmpty) IO.delete(target)
       false
     } else {
@@ -126,10 +126,10 @@ case class GenericShimWriter(
 
 /** This writes shims for activator plugin shims. */
 class ControlledPluginShimWriter(
-    val name: String, 
-    version: String, 
-    sbtBinaryVersion: String = "0.12", 
-    isEmpty: Boolean = false) 
+    val name: String,
+    version: String,
+    sbtBinaryVersion: String = "0.12",
+    isEmpty: Boolean = false)
     extends ContentsShimWriter {
 
   private val cleanedVersion = sbtBinaryVersion.replaceAll("\\W+", "-")
@@ -157,8 +157,8 @@ object ShimWriter {
     GenericShimWriter(
       name = "sbt-eclipse",
       contents = """addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0")""",
-      relativeLocation = "project")     
-  
+      relativeLocation = "project")
+
   lazy val echoAkkaBuildShim =
     GenericShimWriter(
       name = "sbt-echo-akka",
@@ -173,8 +173,8 @@ object ShimWriter {
       contents = """echoPlaySettings""",
       relativeLocation = "")
   lazy val echoPlayBuildDeleteShim =
-    DeleteShimIfExistsWriter(name = "sbt-echo-play",relativeLocation="") 
-      
+    DeleteShimIfExistsWriter(name = "sbt-echo-play",relativeLocation="")
+
   lazy val echoPluginShim =
     GenericShimWriter(
       name = "sbt-echo",
@@ -189,14 +189,17 @@ object ShimWriter {
       contents = """addSbtPlugin("com.typesafe.sbt" % "sbt-echo-play" % """ + '"' + com.typesafe.sbtrc.properties.SbtRcProperties.SBT_ECHO_DEFAULT_VERSION + "\")",
       relativeLocation = "project")
   lazy val echoPlayPluginDeleteShim =
-    DeleteShimIfExistsWriter(name = "sbt-echo-play")      
+    DeleteShimIfExistsWriter(name = "sbt-echo-play")
 
   def allEchoShims = Seq(
     echoPlayPluginShim,
     echoPlayBuildShim,
     echoPluginShim,
     echoAkkaBuildShim)
-   
+
+  lazy val newRelicDeleteShim =
+    DeleteShimIfExistsWriter(name = "sbt-new-relic")
+
   // Note - Right now, we aren't shiming echo into sbt 0.12 projects.
   // They have to already have echo configured for support to be enabled.
   def sbt12Shims(version: String): Seq[ShimWriter] = Seq(
@@ -208,27 +211,27 @@ object ShimWriter {
     ideaPluginShim
   )
   // TODO - Configure this via property....
-  
+
   lazy val eclipsePluginShim =
     GenericShimWriter(
       name = "sbt-eclipse",
       contents = """addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.3.0")""",
       relativeLocation = "project")
-      
+
   // TODO - Configure this via property...
   lazy val ideaPluginShim =
     GenericShimWriter(
       name = "sbt-idea",
       contents = """addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.5.2")""",
       relativeLocation = "project")
-      
+
   def sbt13Shims(version: String): Seq[ShimWriter] = Seq(
     new DeleteShimIfExistsWriter("defaults"),
     new DeleteShimIfExistsWriter("eclipse"),
     new DeleteShimIfExistsWriter("idea"),
     new DeleteShimIfExistsWriter("play")
   ) ++ allEchoShims ++ sbt13ideShims
-  
+
   def sbt13ideShims: Seq[ShimWriter] = Seq(eclipsePluginShim, ideaPluginShim)
 
   def knownShims(version: String, sbtVersion: String = "0.12"): Seq[ShimWriter] =
