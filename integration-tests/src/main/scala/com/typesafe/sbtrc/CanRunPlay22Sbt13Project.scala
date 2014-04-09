@@ -19,7 +19,7 @@ class CanRunPlay22Sbt13Project extends SbtProcessLauncherTest {
   val plugins = new File(dummy, "project/plugins.sbt")
   // TODO - Abstract out plugin version to test more than one play instance...
   IO.write(plugins,
-    """addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0")""")
+    """addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.2")""")
   val build = new File(dummy, "project/build.scala")
   IO.write(build,
     """
@@ -34,7 +34,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq()
 
-  val main = 
+  val main =
       play.Project(appName, appVersion, appDependencies).
       settings(
       playRunHooks += (
@@ -76,7 +76,7 @@ object ApplicationBuild extends Build {
           result.success(x)
           context stop self
 
-        // Here we capture the output of play start. 
+        // Here we capture the output of play start.
         // TODO - We should validate the port is the one we expect....
         case GenericEvent("run", "playServerStarted", params) =>
           receivedSocketInfo = true
