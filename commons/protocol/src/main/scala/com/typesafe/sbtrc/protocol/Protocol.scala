@@ -64,6 +64,8 @@ object LogEntry {
   }
 }
 
+case class ArtifactEntry(version:String, path:String)
+
 // This type needs to be completely/permanently split into
 // SpecificMessage and GenericMessage for better safety.
 // Will come in a future refactoring round.

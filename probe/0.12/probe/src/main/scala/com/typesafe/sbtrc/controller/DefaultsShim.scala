@@ -14,6 +14,7 @@ import sbt.ConfigKey.configurationToKey
 import sbt.Project.richInitializeTask
 import sbt.Scoped.inputScopedToKey
 import sbt.Scoped.taskScopedToKey
+import com.typesafe.sbtrc.protocol.ArtifactEntry
 
 object DefaultsShim {
 
@@ -113,7 +114,12 @@ object DefaultsShim {
     val hasPlay = controller.isPlayProject(origState)
     val hasEcho = EchoSupport.isEchoProject(origState)
     val hasAkka = AkkaSupport.isAkkaProject(origState)
-    val newRelicAgent = NewRelicSupport.newRelicAgent(origState).map(version => Map("newRelicAgent" -> version)).getOrElse(Map.empty[String, Any])
+    val newRelicAgent: Map[String, Any] = NewRelicSupport.newRelicAgent(origState).map {
+      case ArtifactEntry(version, path) =>
+        Map("newRelicAgent" ->
+          Map("version" -> version,
+            "path" -> path))
+    }.getOrElse(Map.empty[String, Any])
 
     (origState, makeResponseParams(protocol.NameResponse(result,
       Map("hasPlay" -> hasPlay,

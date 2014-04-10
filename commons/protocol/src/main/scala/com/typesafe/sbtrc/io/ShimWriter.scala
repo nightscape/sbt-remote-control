@@ -197,9 +197,6 @@ object ShimWriter {
     echoPluginShim,
     echoAkkaBuildShim)
 
-  lazy val newRelicDeleteShim =
-    DeleteShimIfExistsWriter(name = "sbt-new-relic")
-
   // Note - Right now, we aren't shiming echo into sbt 0.12 projects.
   // They have to already have echo configured for support to be enabled.
   def sbt12Shims(version: String): Seq[ShimWriter] = Seq(

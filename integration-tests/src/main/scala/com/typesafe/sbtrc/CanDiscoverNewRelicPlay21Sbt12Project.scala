@@ -51,7 +51,7 @@ object ApplicationBuild extends Build {
   val child = SbtProcess(system, dummy, sbtProcessLauncher)
   @volatile var receivedSocketInfo = false
   @volatile var receivedNameInfo = false
-  @volatile var newRelicAgent: Option[String] = None
+  @volatile var newRelicAgent: Option[Map[String, String]] = None
   try {
     val result = concurrent.promise[Response]()
     val testActor = system.actorOf(Props(new Actor with ActorLogging {
@@ -64,7 +64,7 @@ object ApplicationBuild extends Build {
           log.debug("Received name response " + x)
           receivedNameInfo =
             x.attributes.getOrElse("hasPlay", false).asInstanceOf[Boolean]
-          newRelicAgent = x.attributes.get("newRelicAgent").asInstanceOf[Option[String]]
+          newRelicAgent = x.attributes.get("newRelicAgent").asInstanceOf[Option[Map[String, String]]]
           // Now issue the run request
           child ! RunRequest(sendEvents = true, mainClass = None)
         // Here we capture the result of the run task.
@@ -105,8 +105,13 @@ object ApplicationBuild extends Build {
           throw new AssertionError("Did not discover echo/akka support via name request!")
         newRelicAgent match {
           case None => throw new AssertionError("Unable to retrieve New Relic version info")
-          case Some(`newRelicAgentVersion`) => // all good
-          case Some(version) => throw new AssertionError(s"version of agent incorrect.  Found $version expecting $newRelicAgentVersion")
+          case Some(data) => (data.get("version"), data.get("path")) match {
+            case (Some(`newRelicAgentVersion`), Some(_)) => // all good
+            case (Some(version), Some(_)) => throw new AssertionError(s"version of agent incorrect.  Found $version expecting $newRelicAgentVersion")
+            case (None, Some(_)) => throw new AssertionError(s"Missing New Relic version")
+            case (Some(_), None) => throw new AssertionError(s"Missing New Relic artifact path")
+            case _ => throw new AssertionError(s"Missing New Relic artifact path and version")
+          }
         }
       case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
     }
@@ -158,7 +163,7 @@ object ApplicationBuild extends Build {
   val child = SbtProcess(system, dummy, sbtProcessLauncher)
   @volatile var receivedSocketInfo = false
   @volatile var receivedNameInfo = false
-  @volatile var newRelicAgent: Option[String] = None
+  @volatile var newRelicAgent: Option[Map[String, String]] = None
   try {
     val result = concurrent.promise[Response]()
     val testActor = system.actorOf(Props(new Actor with ActorLogging {
@@ -171,7 +176,7 @@ object ApplicationBuild extends Build {
           log.debug("Received name response " + x)
           receivedNameInfo =
             x.attributes.getOrElse("hasPlay", false).asInstanceOf[Boolean]
-          newRelicAgent = x.attributes.get("newRelicAgent").asInstanceOf[Option[String]]
+          newRelicAgent = x.attributes.get("newRelicAgent").asInstanceOf[Option[Map[String, String]]]
           // Now issue the run request
           child ! RunRequest(sendEvents = true, mainClass = None)
         // Here we capture the result of the run task.
