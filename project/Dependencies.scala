@@ -7,7 +7,7 @@ object Dependencies {
   def getScalaVersionForSbtVersion(sbt: String) =
     CrossVersion.binarySbtVersion(sbt) match {
       case "0.12" => "2.9.2"
-      case "0.13" => "2.10.2"
+      case "0.13" => "2.10.4"
       case _ => sys.error("Unsupported sbt version: " + sbt)
     }
 
@@ -30,7 +30,7 @@ object Dependencies {
   val sbt013EchoSupportedPlayVersion = "2.2.2"
 
   // Here are the versions used for the core project
-  val scalaVersion = "2.10.4"
+  val scalaVersion = "2.11.0"
   val sbtMainVersion = sbt13Version
   val akkaVersion = "2.3.2"
 
@@ -41,9 +41,11 @@ object Dependencies {
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtMainVersion
   val sbtCompletion        = "org.scala-sbt" % "completion" % sbtMainVersion
 
-  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion
-  val akkaSlf4j            = "com.typesafe.akka" % "akka-slf4j_2.10" % akkaVersion
-  val akkaTestkit          = "com.typesafe.akka" % "akka-testkit_2.10" % akkaVersion
+  val scalaParserCombinators = "org.scala-lang.modules"  %% "scala-parser-combinators" % "1.0.1"
+
+  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.11" % akkaVersion
+  val akkaSlf4j            = "com.typesafe.akka" % "akka-slf4j_2.11" % akkaVersion
+  val akkaTestkit          = "com.typesafe.akka" % "akka-testkit_2.11" % akkaVersion
 
   val commonsIo            = "commons-io" % "commons-io" % "2.0.1"
 

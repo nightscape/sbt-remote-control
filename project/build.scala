@@ -134,14 +134,13 @@ object TheBuild extends Build {
   lazy val sbtRemoteController = (
     SbtRemoteControlProject("remote-controller")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
-    settings(
-      Keys.publishArtifact in (Test, Keys.packageBin) := true
-    )
+    settings(Keys.publishArtifact in (Test, Keys.packageBin) := true)
     dependsOnSource("commons/protocol")
     dependsOn(props)
     dependsOnRemote(akkaActor,
                     sbtLauncherInterface,
-                    sbtIo)
+                    sbtIo,
+                    scalaParserCombinators)
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
   )
